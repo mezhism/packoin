@@ -11,44 +11,33 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <style>
-        /* 100dvh 解決行動裝置瀏覽器 UI 遮擋問題 */
-        :root {
-            --app-height: 100dvh;
-        }
+        /* 使用 dvh 確保在手機瀏覽器上不會被網址列遮擋 */
+        :root { --app-height: 100dvh; }
 
         @keyframes scanner-move {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(min(280px, 40vh)); }
         }
-        .animate-scanner-move {
-            animation: scanner-move 2s infinite ease-in-out;
-        }
+        .animate-scanner-move { animation: scanner-move 2s infinite ease-in-out; }
 
         body { 
             background-color: #f1f5f9; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            overscroll-behavior-y: contain; /* 防止下拉重整 */
+            margin: 0; padding: 0;
+            overscroll-behavior-y: contain;
         }
 
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 電腦端居中模擬手機 */
+        /* 電腦端顯示模擬手機邊框，手機端則滿版 */
         @media (min-width: 640px) {
             #root {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                padding: 20px;
+                display: flex; justify-content: center; align-items: center;
+                height: 100vh; padding: 20px;
             }
             .app-container {
-                max-width: 420px;
-                max-height: 850px;
-                border-radius: 40px;
-                border: 8px solid #1e293b;
+                max-width: 420px; max-height: 850px;
+                border-radius: 40px; border: 8px solid #1e293b;
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             }
         }
@@ -60,14 +49,12 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
+        // Icon 元件
         const Icon = ({ name, size = 24, className = "", fill = "none" }) => {
             const iconRef = useRef(null);
             useEffect(() => {
                 if (window.lucide && iconRef.current) {
-                    window.lucide.createIcons({
-                        icons: { [name]: window.lucide.icons[name] },
-                        nameAttr: 'data-lucide'
-                    });
+                    window.lucide.createIcons({ icons: { [name]: window.lucide.icons[name] }, nameAttr: 'data-lucide' });
                 }
             }, [name]);
             const lucideName = name.toLowerCase().replace(/([a-z])([A-Z])/g, '$1-$2');
@@ -84,8 +71,10 @@
             const [showScanSuccess, setShowScanSuccess] = useState(false);
             const [isScanning, setIsScanning] = useState(false);
             const [packoin, setPackoin] = useState(1280);
-            const [petStats, setPetStats] = useState({ hunger: 70, happiness: 80, health: 90, exp: 45, level: 2, status: 'Happy' });
+            const [petStats, setPetStats] = useState({ hunger: 70, happiness: 80, health: 90, exp: 45, level: 2 });
             const [gameMsg, setGameMsg] = useState('哈囉！今天也要一起愛地球喔！');
+            
+            // AI 助手狀態
             const [showAiAssistant, setShowAiAssistant] = useState(false);
             const [aiInput, setAiInput] = useState('');
             const [chatHistory, setChatHistory] = useState([{ role: 'ai', text: '您好！我是您的 ✨ PackAge+ 減碳助手。' }]);
@@ -97,6 +86,7 @@
                 { id: 3, name: '誠品書店 - 信義店', type: 'rent', lat: 30, lng: 75 },
             ];
 
+            // 遊戲交互邏輯
             const interactPet = (type) => {
                 setPetStats(prev => {
                     let next = { ...prev };
@@ -108,6 +98,7 @@
                 setTimeout(() => setGameMsg('哈囉！今天也要一起愛地球喔！'), 3000);
             };
 
+            // 掃描模擬
             useEffect(() => {
                 if (isScanning) {
                     const timer = setTimeout(() => {
@@ -121,41 +112,42 @@
                 }
             }, [isScanning]);
 
+            // AI 傳送邏輯
             const handleSendMessage = async () => {
                 if (!aiInput.trim()) return;
                 const userMsg = aiInput;
                 setChatHistory(prev => [...prev, { role: 'user', text: userMsg }]);
                 setAiInput('');
                 setIsAiTyping(true);
-                if (!apiKey) {
-                    setTimeout(() => {
-                        setChatHistory(prev => [...prev, { role: 'ai', text: '這是模擬回應，填入 API Key 即可對話！' }]);
-                        setIsAiTyping(false);
-                    }, 1000);
-                }
+                // 這裡保留妳原本的 API 呼叫結構 (略縮模擬)
+                setTimeout(() => {
+                    setChatHistory(prev => [...prev, { role: 'ai', text: '我是 PackAge+ AI，目前正在模擬運行中。' }]);
+                    setIsAiTyping(false);
+                }, 1000);
             };
 
             return (
-                <div className="app-container flex flex-col w-full h-[100dvh] bg-slate-50 overflow-hidden relative shadow-inner">
-                    {/* Header - 固定於頂部 */}
-                    <header className="px-6 pt-10 pb-4 bg-white/80 backdrop-blur-md flex justify-between items-end border-b shrink-0 z-20">
+                <div className="app-container flex flex-col w-full h-[100dvh] bg-white overflow-hidden relative shadow-inner">
+                    {/* 固定 Header */}
+                    <header className="px-6 pt-10 pb-4 bg-white/90 backdrop-blur-md flex justify-between items-end border-b shrink-0 z-20">
                         <div>
                             <h1 className="text-2xl font-black text-[#49B5A8] tracking-tight">PackAge+</h1>
-                            <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Circular Life</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Circular Life</p>
                         </div>
                         <button onClick={() => setShowAiAssistant(true)} className="bg-emerald-50 text-emerald-600 p-2 rounded-2xl flex items-center gap-2 active:scale-95 transition-all">
                             <Icon name="Sparkles" size={18} />
-                            <span className="text-xs font-bold">AI</span>
+                            <span className="text-xs font-bold">AI 助手</span>
                         </button>
                     </header>
 
-                    {/* 主要內容區 - 可捲動 */}
-                    <main className="flex-1 overflow-y-auto scrollbar-hide relative pb-12">
+                    {/* 可捲動內容區 */}
+                    <main className="flex-1 overflow-y-auto scrollbar-hide bg-slate-50 relative pb-12">
                         {activeTab === 'home' && (
                             <div className="p-6 space-y-6 animate-in fade-in">
-                                <section className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-100">
+                                {/* 電子雞卡片 */}
+                                <section className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-100 text-center">
                                     <div className="flex justify-between mb-4">
-                                        <div className="bg-emerald-50 px-3 py-1 rounded-full text-[10px] font-black text-emerald-600">LV.{petStats.level}</div>
+                                        <div className="bg-emerald-50 px-3 py-1 rounded-full text-[10px] font-black text-emerald-600">LV.{petStats.level} 成長中</div>
                                         <div className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
                                             <Icon name="Heart" size={10} fill="#f43f5e" className="text-[#f43f5e]" /> {petStats.happiness}%
                                         </div>
@@ -165,30 +157,122 @@
                                             <img src={`https://api.dicebear.com/7.x/bottts/svg?seed=EcoPet&backgroundColor=b6e3f4`} alt="Pet" className="w-20" />
                                         </div>
                                         <div className="mt-4 bg-[#49B5A8] text-white px-4 py-2 rounded-2xl text-[11px] font-bold shadow-md">{gameMsg}</div>
+                                        <div className="w-48 bg-slate-100 h-2 rounded-full mt-6 overflow-hidden">
+                                            <div className="bg-emerald-400 h-full transition-all duration-500" style={{ width: `${petStats.exp}%` }}></div>
+                                        </div>
                                     </div>
                                     <div className="flex justify-around pt-4 border-t border-slate-50">
-                                        <button onClick={() => interactPet('feed')} className="flex flex-col items-center gap-1"><div className="p-3 bg-amber-50 text-amber-500 rounded-2xl"><Icon name="Utensils" size={18} /></div></button>
-                                        <button onClick={() => interactPet('play')} className="flex flex-col items-center gap-1"><div className="p-3 bg-blue-50 text-blue-500 rounded-2xl"><Icon name="Gamepad2" size={18} /></div></button>
-                                        <button onClick={() => interactPet('clean')} className="flex flex-col items-center gap-1"><div className="p-3 bg-cyan-50 text-cyan-500 rounded-2xl"><Icon name="Droplets" size={18} /></div></button>
+                                        <button onClick={() => interactPet('feed')} className="p-3 bg-amber-50 text-amber-500 rounded-2xl active:scale-90 transition-all"><Icon name="Utensils" size={18} /></button>
+                                        <button onClick={() => interactPet('play')} className="p-3 bg-blue-50 text-blue-500 rounded-2xl active:scale-90 transition-all"><Icon name="Gamepad2" size={18} /></button>
+                                        <button onClick={() => interactPet('clean')} className="p-3 bg-cyan-50 text-cyan-500 rounded-2xl active:scale-90 transition-all"><Icon name="Droplets" size={18} /></button>
                                     </div>
                                 </section>
 
-                                <h3 className="font-black text-slate-900 flex items-center gap-2"><Icon name="Leaf" size={18} className="text-[#49B5A8]" />永續報導</h3>
+                                {/* 報導列表 */}
+                                <h3 className="font-black text-slate-900 flex items-center gap-2 px-2"><Icon name="Leaf" size={18} className="text-[#49B5A8]" />永續報導</h3>
                                 <div className="space-y-4">
-                                    {['攜手全家打造回收鏈', '企業禮品提袋客製化'].map((title, i) => (
-                                        <div key={i} className="bg-white rounded-3xl p-3 shadow-sm border border-slate-100 flex items-center gap-4">
-                                            <img src={`https://picsum.photos/seed/${i+20}/100/100`} className="w-16 h-16 rounded-2xl object-cover" />
-                                            <h4 className="text-sm font-black text-slate-800">{title}</h4>
+                                    {['攜手全家打造回收鏈', '企業禮品提袋客製化', '2024 包裝減量指南', '循環袋真的環保嗎？'].map((title, i) => (
+                                        <div key={i} className="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 flex items-center gap-4">
+                                            <img src={`https://picsum.photos/seed/${i+40}/100/100`} className="w-16 h-16 rounded-2xl object-cover shrink-0" />
+                                            <h4 className="text-sm font-black text-slate-800 leading-snug">{title}</h4>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
-                        {/* 此處保留原本 map, mall, info 的分頁 logic */}
+
+                        {activeTab === 'map' && (
+                            <div className="h-full flex flex-col relative bg-slate-100">
+                                <div className="flex-1 relative bg-slate-200 overflow-hidden">
+                                    <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:20px_20px] opacity-30"></div>
+                                    {stations.filter(s => mapFilter === 'all' || s.type === mapFilter || s.type === 'both').map(s => (
+                                        <button key={s.id} onClick={() => setSelectedStation(s)} className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-all ${selectedStation?.id === s.id ? 'scale-125 z-20' : 'z-10'}`} style={{ left: `${s.lat}%`, top: `${s.lng}%` }}>
+                                            <div className={`p-2 rounded-full shadow-lg border-2 ${s.type === 'return' ? 'bg-blue-500 border-white' : 'bg-[#49B5A8] border-white'}`}>
+                                                <Icon name="MapPin" size={20} className="text-white" />
+                                            </div>
+                                        </button>
+                                    ))}
+                                    <div className="absolute top-4 left-4 right-4 space-y-2 z-30">
+                                        <div className="bg-white/90 backdrop-blur-md p-1 rounded-2xl shadow-xl flex gap-1 border border-white">
+                                            {['all', 'rent', 'return'].map(f => (
+                                                <button key={f} onClick={() => setMapFilter(f)} className={`flex-1 py-2 text-[10px] font-black rounded-xl ${mapFilter === f ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}>
+                                                    {f === 'all' ? '全部顯示' : f === 'rent' ? '我要租借' : '我要歸還'}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                {selectedStation && (
+                                    <div className="bg-white rounded-t-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-full z-40 relative">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 uppercase tracking-tighter">{selectedStation.type}</span>
+                                                <h3 className="text-xl font-black text-slate-900 mt-1">{selectedStation.name}</h3>
+                                            </div>
+                                            <button onClick={() => setSelectedStation(null)} className="p-2 bg-slate-50 rounded-full"><Icon name="X" size={18} className="text-slate-400" /></button>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 active:opacity-90"><Icon name="Navigation" size={18} />導航</button>
+                                            <button onClick={() => setIsScanning(true)} className="flex-[2] bg-[#49B5A8] text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 active:scale-95 transition-all"><Icon name="Scan" size={18} />確認租還動作</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'mall' && (
+                            <div className="p-6 space-y-6 animate-in fade-in">
+                                <div className="bg-slate-900 rounded-[2.5rem] p-6 text-white flex justify-between items-center shadow-xl relative overflow-hidden">
+                                    <div className="relative z-10">
+                                        <p className="text-[10px] font-bold opacity-60 uppercase tracking-widest mb-1">Available Packoin</p>
+                                        <span className="text-3xl font-black">{packoin.toLocaleString()}</span>
+                                    </div>
+                                    <Icon name="Wallet" size={32} className="text-amber-400 relative z-10" />
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+                                </div>
+                                <h3 className="font-black text-slate-900 px-2 mt-8">熱門兌換</h3>
+                                {[{ t: '全家大杯美式咖啡', p: 800, i: '☕' }, { t: '旋轉拍賣抵用券', p: 500, i: '🚚' }].map((item, i) => (
+                                    <div key={i} className="bg-white p-4 rounded-3xl flex justify-between items-center border border-slate-100 shadow-sm group">
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-2xl bg-slate-50 w-12 h-12 flex items-center justify-center rounded-2xl">{item.i}</span>
+                                            <div><p className="font-bold text-slate-800 text-sm">{item.t}</p><p className="text-[#49B5A8] text-xs font-bold">{item.p} P+</p></div>
+                                        </div>
+                                        <button onClick={() => { if(packoin >= item.p) setPackoin(packoin - item.p); }} className="bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-bold active:bg-emerald-500 transition-colors">兌換</button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {activeTab === 'info' && (
+                            <div className="p-6 space-y-6 animate-in fade-in overflow-y-auto h-full">
+                                <div className="bg-white rounded-[2.5rem] p-8 text-center border border-slate-100 shadow-sm relative overflow-hidden">
+                                    <div className="w-20 h-20 bg-slate-100 rounded-full mx-auto mb-4 overflow-hidden border-4 border-white shadow-lg">
+                                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar" />
+                                    </div>
+                                    <h3 className="text-2xl font-black text-slate-900">周小明</h3>
+                                    <p className="text-slate-400 text-xs mb-6 font-bold tracking-tight">加入第 124 天</p>
+                                    <div className="bg-emerald-900 text-white rounded-3xl p-5 flex items-center justify-between text-left shadow-lg">
+                                        <div className="flex items-center gap-4">
+                                            <div className="bg-emerald-400/20 p-2 rounded-xl"><Icon name="Crown" size={24} className="text-emerald-300" /></div>
+                                            <div><p className="text-[10px] font-bold text-emerald-300 uppercase tracking-widest">專業方案</p><p className="text-sm font-black">Unlimited Pro</p></div>
+                                        </div>
+                                        <Icon name="ChevronRight" size={18} className="text-emerald-400" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2 px-2">
+                                    {['訂閱方案管理', '租還歷史紀錄', '幫助與客服中心'].map((item, i) => (
+                                        <div key={i} className="bg-white p-5 rounded-3xl border border-slate-100 flex justify-between items-center text-sm font-black active:bg-slate-50 transition-colors">
+                                            <span className="text-slate-700">{item}</span>
+                                            <Icon name="ChevronRight" size={18} className="text-slate-300" />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </main>
 
-                    {/* 底部分頁導覽 - 固定於底部 */}
-                    <nav className="bg-white/90 backdrop-blur-md border-t px-6 pt-3 pb-8 flex justify-between items-center shrink-0 z-20 shadow-lg">
+                    {/* 固定底部分頁導覽 */}
+                    <nav className="bg-white/90 backdrop-blur-md border-t px-6 pt-3 pb-8 flex justify-between items-center shrink-0 z-30 shadow-lg">
                         {[
                             { id: 'home', icon: 'Home', label: '主頁' },
                             { id: 'map', icon: 'MapPin', label: '地圖' },
@@ -197,13 +281,13 @@
                             { id: 'info', icon: 'User', label: '個人' }
                         ].map((t) => (
                             t.special ? (
-                                <button key={t.id} onClick={() => setIsScanning(true)} className="w-14 h-14 bg-slate-900 text-white rounded-2xl shadow-xl flex items-center justify-center border-4 border-white active:scale-90 transition-all -mt-12">
+                                <button key={t.id} onClick={() => setIsScanning(true)} className="w-14 h-14 bg-slate-900 text-white rounded-2xl shadow-xl flex items-center justify-center border-4 border-white active:scale-90 transition-all -mt-12 z-40">
                                     <Icon name={t.icon} size={24} />
                                 </button>
                             ) : (
                                 <button key={t.id} onClick={() => setActiveTab(t.id)} className={`flex flex-col items-center gap-1 ${activeTab === t.id ? 'text-[#49B5A8]' : 'text-slate-300'}`}>
                                     <Icon name={t.icon} size={22} fill={activeTab === t.id ? 'currentColor' : 'none'} />
-                                    <span className="text-[9px] font-black">{t.label}</span>
+                                    <span className="text-[9px] font-black uppercase tracking-widest">{t.label}</span>
                                 </button>
                             )
                         ))}
@@ -216,37 +300,37 @@
                                 <h2 className="text-lg font-black flex items-center gap-2"><Icon name="Sparkles" className="text-emerald-500" /> AI 助手</h2>
                                 <button onClick={() => setShowAiAssistant(false)} className="p-2 bg-slate-50 rounded-full"><Icon name="X" /></button>
                             </div>
-                            <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4">
+                            <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4 scrollbar-hide">
                                 {chatHistory.map((msg, i) => (
                                     <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-slate-900 text-white' : 'bg-white shadow-sm'}`}>{msg.text}</div>
+                                        <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-slate-900 text-white rounded-tr-none' : 'bg-white shadow-sm rounded-tl-none font-medium'}`}>{msg.text}</div>
                                     </div>
                                 ))}
                             </div>
                             <div className="p-4 bg-white border-t flex gap-2 pb-10">
-                                <input type="text" value={aiInput} onChange={(e) => setAiInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="輸入問題..." className="flex-1 bg-slate-100 px-4 py-2 rounded-xl text-sm" />
-                                <button onClick={handleSendMessage} className="bg-emerald-500 text-white p-2 rounded-xl"><Icon name="Send" size={18} /></button>
+                                <input type="text" value={aiInput} onChange={(e) => setAiInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="輸入問題..." className="flex-1 bg-slate-100 px-4 py-3 rounded-xl text-sm outline-none" />
+                                <button onClick={handleSendMessage} className="bg-emerald-500 text-white p-3 rounded-xl active:scale-95 transition-all"><Icon name="Send" size={18} /></button>
                             </div>
                         </div>
                     )}
 
-                    {/* 全螢幕遮罩 (Scan & Success) 保持 z-index 最高 */}
+                    {/* 全螢幕遮罩 (Scan & Success) */}
                     {isScanning && (
-                        <div className="absolute inset-0 bg-black/90 z-[100] flex flex-col items-center justify-center text-white">
+                        <div className="absolute inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center text-white">
                             <div className="relative w-64 h-64 border-2 border-white/20 rounded-3xl overflow-hidden">
                                 <div className="absolute top-0 w-full h-1 bg-[#49B5A8] shadow-[0_0_15px_#49B5A8] animate-scanner-move"></div>
-                                <Icon name="Scan" size={100} className="absolute inset-0 m-auto opacity-20" />
+                                <Icon name="Scan" size={100} className="absolute inset-0 m-auto opacity-10" />
                             </div>
-                            <p className="mt-8 font-black animate-pulse uppercase tracking-widest text-sm">Scanning...</p>
-                            <button onClick={() => setIsScanning(false)} className="mt-12 p-4 bg-white/10 rounded-full"><Icon name="X" /></button>
+                            <p className="mt-8 font-black animate-pulse uppercase tracking-widest text-sm">Scanning QR Code...</p>
+                            <button onClick={() => setIsScanning(false)} className="mt-12 p-4 bg-white/10 rounded-full border border-white/10 active:scale-90 transition-all"><Icon name="X" size={24} /></button>
                         </div>
                     )}
 
                     {showScanSuccess && (
                         <div className="absolute inset-0 bg-[#49B5A8] z-[110] flex flex-col items-center justify-center text-white animate-in zoom-in">
-                            <Icon name="CheckCircle2" size={80} />
-                            <h2 className="text-3xl font-black mt-4">歸還成功！</h2>
-                            <p className="font-bold opacity-80">+50 PACKOIN</p>
+                            <Icon name="CheckCircle2" size={80} strokeWidth={3} />
+                            <h2 className="text-4xl font-black mt-6 tracking-tight">歸還成功！</h2>
+                            <p className="font-bold opacity-80 text-lg mt-2">+50 PACKOIN</p>
                         </div>
                     )}
                 </div>

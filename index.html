@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PackAge+ Packcoin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(280px); }
+        }
+        .animate-bounce-slow {
+            animation: bounce-slow 2s infinite ease-in-out;
+        }
+        main::-webkit-scrollbar { display: none; }
+        body { background-color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // 從全域變數中取得 React Hooks
+        const { useState, useEffect } = React;
+        
+        // 建立 Lucide Icon 元件封裝
+        const Icon = ({ name, size = 24, ...props }) => {
+            const LucideIcon = lucide[name.charAt(0).toUpperCase() + name.slice(1)];
+            return LucideIcon ? <LucideIcon size={size} {...props} /> : null;
+        };
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('home'); 
+            const [selectedStation, setSelectedStation] = useState(null);
+            const [mapFilter, setMapFilter] = useState('all'); 
+            const [showScanSuccess, setShowScanSuccess] = useState(false);
+            const [isScanning, setIsScanning] = useState(false); 
+            const [packoin, setPackoin] = useState(1280);
+            
+            const [petStats, setPetStats] = useState({
+                hunger: 70, happiness: 80, health: 90, exp: 45, level: 2, status: 'Happy'
+            });
+            const [gameMsg, setGameMsg] = useState('哈囉！今天也要一起愛地球喔！');
+
+            const stations = [
+                { id: 1, name: '全家便利商店 - 台北松山店', distance: '250m', type: 'both', lat: 45, lng: 35 },
+                { id: 2, name: '7-11 - 興雅門市', distance: '450m', type: 'return', lat: 60, lng: 55 },
+                { id: 3, name: '誠品書店 - 信義店', distance: '1.2km', type: 'rent', lat: 30, lng: 75 },
+            ];
+
+            const interactPet = (type) => {
+                setPetStats(prev => {
+                    let newStats = { ...prev };
+                    if (type === 'feed') { newStats.hunger = Math.min(100, prev.hunger + 10); setGameMsg('這份有機飼料真好吃！'); }
+                    else if (type === 'play') { newStats.happiness = Math.min(100, prev.happiness + 15); newStats.exp = prev.exp + 5; setGameMsg('耶！最喜歡跟你一起玩了！'); }
+                    return newStats;
+                });
+                setTimeout(() => setGameMsg('哈囉！今天也要一起愛地球喔！'), 3000);
+            };
+
+            const handleReturnAction = () => {
+                setIsScanning(false);
+                setShowScanSuccess(true);
+                setPackoin(prev => prev + 50);
+                setTimeout(() => {
+                    setShowScanSuccess(false);
+                    setSelectedStation(null);
+                    setActiveTab('mall'); 
+                }, 2000);
+            };
+
+            return (
+                <div className="flex flex-col h-screen bg-slate-50 font-sans text-slate-800 max-w-md mx-auto overflow-hidden shadow-2xl border-x relative">
+                    {/* Header */}
+                    <header className="px-6 pt-12 pb-4 bg-white flex justify-between items-end border-b z-10">
+                        <div>
+                            <h1 className="text-2xl font-black text-[#49B5A8] tracking-tight">PackAge+</h1>
+                            <p className="text-[10px] text-slate-400 font-bold mb-1 uppercase">Circular Packaging</p>
+                        </div>
+                    </header>
+
+                    {/* Main Content */}
+                    <main className="flex-1 overflow-y-auto relative">
+                        {activeTab === 'home' && (
+                            <div className="p-6 space-y-6">
+                                <section className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-100 text-center">
+                                    <div className="py-4 flex flex-col items-center">
+                                        <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
+                                            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=EcoPet" className="w-16" />
+                                        </div>
+                                        <div className="bg-[#49B5A8] text-white p-2 rounded-xl text-xs mb-4">{gameMsg}</div>
+                                        <div className="flex gap-4">
+                                            <button onClick={() => interactPet('feed')} className="p-3 bg-amber-50 text-amber-600 rounded-xl">餵食</button>
+                                            <button onClick={() => interactPet('play')} className="p-3 bg-blue-50 text-blue-600 rounded-xl">玩耍</button>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section className="space-y-4">
+                                    <h3 className="font-black text-slate-900">永續報導</h3>
+                                    <div className="bg-white p-4 rounded-3xl border border-slate-100 flex gap-4">
+                                        <div className="w-16 h-16 bg-slate-200 rounded-xl"></div>
+                                        <div>
+                                            <p className="text-xs font-bold text-[#49B5A8]">最新消息</p>
+                                            <h4 className="text-sm font-black">PackAge+ 攜手 全家便利商店打造回收鏈</h4>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        )}
+
+                        {activeTab === 'map' && (
+                            <div className="h-full bg-slate-200 relative flex flex-col">
+                                <div className="flex-1 p-4">
+                                    <p className="text-center text-slate-400 mt-20">地圖功能載入中...</p>
+                                    {stations.map(s => (
+                                        <button key={s.id} onClick={() => setSelectedStation(s)} className="absolute bg-[#49B5A8] p-2 rounded-full text-white shadow-lg" style={{left: `${s.lat}%`, top: `${s.lng}%`}}>
+                                            📍
+                                        </button>
+                                    ))}
+                                </div>
+                                {selectedStation && (
+                                    <div className="bg-white p-6 rounded-t-3xl shadow-2xl">
+                                        <h3 className="text-xl font-black">{selectedStation.name}</h3>
+                                        <button onClick={handleReturnAction} className="w-full bg-[#49B5A8] text-white py-4 rounded-2xl mt-4 font-black">確認歸還 (模擬掃描)</button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'mall' && (
+                            <div className="p-6">
+                                <div className="bg-white rounded-3xl p-6 shadow-sm border mb-6">
+                                    <p className="text-xs font-bold text-slate-400">可用 PACKOIN</p>
+                                    <span className="text-3xl font-black">{packoin} P+</span>
+                                </div>
+                                <h3 className="font-black mb-4">熱門兌換</h3>
+                                <div className="bg-white p-4 rounded-2xl border flex justify-between items-center">
+                                    <span>☕ 大杯美式咖啡</span>
+                                    <button className="bg-slate-900 text-white px-4 py-1 rounded-lg text-xs">800 P+</button>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Navbar */}
+                    <nav className="bg-white border-t px-6 py-4 flex justify-between items-center">
+                        <button onClick={() => setActiveTab('home')} className={activeTab === 'home' ? 'text-slate-900' : 'text-slate-300'}>主頁</button>
+                        <button onClick={() => setActiveTab('map')} className={activeTab === 'map' ? 'text-slate-900' : 'text-slate-300'}>地圖</button>
+                        <button onClick={() => setActiveTab('mall')} className={activeTab === 'mall' ? 'text-[#49B5A8]' : 'text-slate-300'}>商城</button>
+                    </nav>
+
+                    {/* Success Overlay */}
+                    {showScanSuccess && (
+                        <div className="absolute inset-0 bg-[#49B5A8] flex flex-col items-center justify-center text-white z-[100]">
+                            <h2 className="text-3xl font-black">歸還成功！</h2>
+                            <p>PACKOIN +50</p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
